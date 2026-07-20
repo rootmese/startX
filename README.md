@@ -1,179 +1,296 @@
 # Crypto Gateway MVP
 
-A high-performance, production-ready Node.js and TypeScript microservice for institutional cryptocurrency transactions, market data aggregation, compliance checking, and multi-signature operations. 
+A modular Node.js and TypeScript microservice demonstrating an institutional-grade architecture for cryptocurrency transactions, market data aggregation, compliance workflows, and multi-signature operations.
 
-This service is designed to sit behind the **Nginx DMMR API Gateway** (Kong alternative) as an upstream backend.
+The project was designed as an extensible MVP that demonstrates architectural decisions commonly found in enterprise financial platforms while remaining easy to evolve into a production environment.
+
+This service is designed to sit behind the **Nginx DMMR API Gateway** as an upstream backend.
 
 ---
 
-## 🏛️ System Architecture
+# 🏛️ System Architecture
 
 ```mermaid
 graph TD
     Client["🌐 Client (HTTP Request)"] -->|API Key Auth / Rate Limiting| Nginx["⚙️ Nginx API Gateway"]
     Nginx -->|Reverse Proxy| NodeApp["⚡ Crypto Gateway MVP (Node.js/TS)"]
-    
+
     subgraph Services ["Backend Crypto Services"]
         NodeApp --> Aggregator["📊 Market Data Aggregator"]
-        NodeApp --> DeFi["🦄 DeFi Services (Uniswap, Aave, 1inch)"]
-        NodeApp --> Portfolio["💼 Portfolio Manager (P&L)"]
-        NodeApp --> KYC["🔒 KYC/AML compliance"]
-        NodeApp --> MultiSig["🔑 Multisig Wallet Manager"]
+        NodeApp --> DeFi["🦄 DeFi Services"]
+        NodeApp --> Portfolio["💼 Portfolio Manager"]
+        NodeApp --> KYC["🔒 KYC / AML"]
+        NodeApp --> MultiSig["🔑 Multi-Signature Wallet"]
     end
-    
-    subgraph External ["Crypto Liquidity Sources"]
-        Aggregator --> Binance["Binance API"]
-        Aggregator --> Coinbase["Coinbase API"]
-        Aggregator --> Kraken["Kraken API"]
-        Aggregator --> OKX["OKX API"]
-        Aggregator --> Huobi["Huobi API"]
+
+    subgraph External ["Liquidity Providers"]
+        Aggregator --> Binance["Binance"]
+        Aggregator --> Coinbase["Coinbase"]
+        Aggregator --> Kraken["Kraken"]
+        Aggregator --> OKX["OKX"]
+        Aggregator --> Huobi["Huobi"]
     end
 ```
 
 ---
 
-## 📂 Project Structure
+# 🎯 Project Goals
 
-The project has been structured according to institutional standards:
+The project demonstrates how an institutional crypto gateway can be organized using modern backend architecture principles.
+
+Key objectives include:
+
+- Multi-exchange market aggregation.
+- Modular DeFi integrations.
+- Portfolio management.
+- Compliance (KYC / AML) workflow.
+- Multi-signature transaction management.
+- Clean separation between infrastructure and business logic.
+- Extensible architecture for future integrations.
+
+---
+
+# 🧩 Design Decisions
+
+The project adopts several architectural patterns intended to maximize maintainability and extensibility.
+
+- Adapter Pattern for exchange integrations.
+- Service-oriented architecture.
+- Strong typing with TypeScript.
+- Clear separation of responsibilities.
+- Fault-tolerant provider abstraction.
+- Easily extensible modules.
+- Backend completely independent from the API Gateway implementation.
+
+---
+
+# 📂 Project Structure
 
 ```text
 src/
-├── types.ts                   # Core interfaces and 50 supported cryptos
-├── index.ts                   # Express server entry point with API routing
-├── exchanges/                 # Exchange integration adapters
-│   ├── base.ts                # Abstract class with automatic simulation fallbacks
-│   ├── binance.ts             # Binance API client
-│   ├── coinbase.ts            # Coinbase API client
-│   ├── kraken.ts              # Kraken API client
-│   ├── okx.ts                 # OKX API client
-│   └── huobi.ts               # Huobi API client
-├── defi/                      # Decentralized Finance wrappers
-│   ├── uniswap.ts             # Uniswap V3/V4 pool quotes & slippage calculation
-│   ├── aave.ts                # Aave supply/borrow APY & health factors
-│   └── 1inch.ts               # 1inch route optimization & protocol splits
-├── market-data/               # Aggregation algorithms
-│   └── aggregator.ts          # Consolidation of tickers and order books
-├── portfolio/                 # Balance & valuation service
-│   └── manager.ts             # Asset value tracking and P&L monitoring
-├── kyc-aml/                   # Compliance and anti-money laundering screening
-│   └── service.ts             # Document checks, OFAC lists, and risk scores
-└── wallet/                    # Security components
-    └── multisig.ts            # M-of-N multi-sig transaction proposal & signature flows
+├── types.ts
+├── index.ts
+├── exchanges/
+│   ├── base.ts
+│   ├── binance.ts
+│   ├── coinbase.ts
+│   ├── kraken.ts
+│   ├── okx.ts
+│   └── huobi.ts
+├── defi/
+│   ├── uniswap.ts
+│   ├── aave.ts
+│   └── 1inch.ts
+├── market-data/
+│   └── aggregator.ts
+├── portfolio/
+│   └── manager.ts
+├── kyc-aml/
+│   └── service.ts
+└── wallet/
+    └── multisig.ts
 ```
 
 ---
 
-## ✨ Features
+# ✨ Features
 
-### 1. Multi-Exchange Aggregator
-- **50 Cryptocurrencies Supported**: BTC, ETH, USDT, SOL, XRP, BNB, ADA, DOGE, and many more.
-- **5 Major Integrations**: Real-time ticker price aggregation and consolidated order book depth across Binance, Coinbase, Kraken, OKX, and Huobi.
-- **Resilient Fallback**: Automatic mock generator switches in seamlessly if APIs fail or are offline, ensuring uptime.
+## Market Data Aggregator
 
-### 2. DeFi Hub
-- **Uniswap V3/V4**: Exact-input swap quotes, pool status lookup, and slippage metrics.
-- **Aave Protocol**: Supply/borrow APY percentages and automatic Loan-to-Value (LTV) health factors.
-- **1inch Routing**: Aggregation routes splits across protocols (e.g. Uniswap + Curve).
-
-### 3. Portfolio & P&L Tracker
-- Institutional wallet value calculations in USD.
-- Real-time updates and average buy cost basis calculations.
-- Detailed unrealized profit/loss statements (value and percentage).
-
-### 4. KYC / AML Compliance
-- Registration screen with automatic sanction list matches (OFAC/PEP checks).
-- Real-time transaction amount monitoring for high-value alerts (above $50,000 USD).
-
-### 5. Multi-Sig Vaults
-- M-of-N signature collection for transactions.
-- Security-guarded withdrawal execution once signature threshold is reached.
+- Aggregates prices from multiple exchanges.
+- Consolidates order books.
+- Supports more than 50 cryptocurrencies.
+- Automatic provider fallback when an exchange is unavailable.
 
 ---
 
-## 🚀 How to Run
+## DeFi Services
 
-### Requirements
-- Node.js (v20+ recommended, v26.4.0 verified)
-- npm or yarn
+- Uniswap quote simulation.
+- Aave reserve information.
+- 1inch routing abstraction.
 
-### Installation
-1. Clone this repository.
-2. Install the dependencies:
-   ```bash
-   npm install
-   ```
+The module was designed to simplify the addition of new DeFi protocols with minimal impact on the remaining services.
 
-### Running in Development
-Start the service using `ts-node-dev` with live reload:
+---
+
+## Portfolio Management
+
+- Wallet valuation.
+- Average acquisition cost.
+- Unrealized P&L.
+- Asset allocation.
+
+---
+
+## KYC / AML
+
+The project includes a compliance workflow abstraction demonstrating:
+
+- Customer registration.
+- Risk scoring.
+- Sanction list verification workflow.
+- High-value transaction alerts.
+
+The implementation is structured to allow future integration with external compliance providers.
+
+---
+
+## Multi-Signature Wallet
+
+- Proposal creation.
+- Signature collection.
+- Approval threshold validation.
+- Transaction execution workflow.
+
+The module demonstrates the orchestration logic for multi-signature operations.
+
+---
+
+# 🚀 Running
+
+## Requirements
+
+- Node.js 20+
+- npm
+
+## Installation
+
+```bash
+npm install
+```
+
+## Development
+
 ```bash
 npm run dev
 ```
-The service will start on port `3000` (default) or the port configured via the `PORT` environment variable.
 
-### Building for Production
-Compile the TypeScript code:
+## Production Build
+
 ```bash
 npm run build
-```
-Start the compiled production bundle:
-```bash
 npm start
 ```
 
 ---
 
-## 📡 API Endpoints
+# 📡 REST API
 
-### Health Check
-- `GET /api/health` - Check service status.
+## Health
 
-### Market Data
-- `GET /api/market-data/price/:symbol` - Retrieve consolidated market price and individual exchange prices.
-- `GET /api/market-data/orderbook/:symbol` - Retrieve a consolidated order book (top 10 bids/asks).
-
-### DeFi
-- `GET /api/defi/uniswap/quote?tokenIn=BTC&tokenOut=USDT&amountIn=1.0` - Quote a token swap.
-- `GET /api/defi/aave/reserve/:symbol` - Retrieve supply/borrow APYs.
-- `GET /api/defi/1inch/quote?fromToken=ETH&toToken=USDT&amount=10` - Retrieve optimal route mapping.
-
-### Portfolio
-- `GET /api/portfolio/:id` - Retrieve detailed asset allocation and P&L.
-
-### KYC / AML Compliance
-- `GET /api/kyc/status/:id` - Retrieve a user's compliance record.
-- `POST /api/kyc/register` - Submit a user document for verification.
-  - Body: `{ "fullName": "Jane Doe", "documentNumber": "123.456.789-00", "documentType": "CPF" }`
-
-### Multi-Sig Wallets
-- `GET /api/multisig/wallet/:address` - View wallet balance and owners.
-- `POST /api/multisig/propose` - Propose a multi-sig asset transfer.
-  - Body: `{ "walletAddress": "0xAddress", "toAddress": "0xTo", "symbol": "BTC", "amount": 1.5, "creatorAddress": "0xOwner" }`
-- `POST /api/multisig/sign` - Append signature to a transaction proposal.
-  - Body: `{ "proposalId": "prop-id", "signerAddress": "0xOwner2" }`
+```
+GET /api/health
+```
 
 ---
 
-## ⚙️ Nginx Reverse Proxy Configuration
+## Market Data
 
-To expose this service behind Nginx, add the following location block to your server configuration:
+```
+GET /api/market-data/price/:symbol
+GET /api/market-data/orderbook/:symbol
+```
+
+---
+
+## DeFi
+
+```
+GET /api/defi/uniswap/quote
+GET /api/defi/aave/reserve/:symbol
+GET /api/defi/1inch/quote
+```
+
+---
+
+## Portfolio
+
+```
+GET /api/portfolio/:id
+```
+
+---
+
+## KYC
+
+```
+GET  /api/kyc/status/:id
+POST /api/kyc/register
+```
+
+---
+
+## MultiSig
+
+```
+GET  /api/multisig/wallet/:address
+POST /api/multisig/propose
+POST /api/multisig/sign
+```
+
+---
+
+# ⚙️ Nginx Integration
+
+Example reverse proxy configuration.
 
 ```nginx
 server {
+
     listen 80;
+
     server_name mycrypto.gateway;
 
-    # Backend API Proxy
     location /api/ {
+
         proxy_pass http://127.0.0.1:3000;
+
         proxy_http_version 1.1;
+
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+
+        proxy_set_header Connection "upgrade";
+
         proxy_set_header Host $host;
+
         proxy_cache_bypass $http_upgrade;
-        
-        # Native DMMR Module directives can be applied here
+
+        #
+        # Optional DMMR Gateway directives
+        #
+
         # dmmr_enable on;
         # dmmr_rate_limit 120;
     }
+
 }
 ```
+
+---
+
+# 🛣️ Roadmap
+
+Planned improvements include:
+
+- OAuth2 / JWT authentication.
+- OpenTelemetry instrumentation.
+- Prometheus metrics.
+- Distributed tracing.
+- Redis caching.
+- Message broker integration (Kafka / RabbitMQ).
+- Database persistence.
+- CI/CD pipeline.
+- Automated integration tests.
+- Container orchestration with Kubernetes.
+- Secrets management.
+- Horizontal scaling strategies.
+- Enhanced observability dashboards.
+
+---
+
+# 📖 Notes
+
+This repository is intended as an architectural MVP demonstrating the design of a modular cryptocurrency gateway.
+
+The implementation prioritizes clean architecture, modularity, and extensibility, providing a solid foundation for future production-oriented evolution.
